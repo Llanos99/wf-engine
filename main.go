@@ -68,10 +68,10 @@ func main() {
 
 	wf := &models.Workflow{
 		StartAt: "first_step",
-		Steps: []models.Step{
-			step1,
-			step2,
-			step3,
+		Steps: map[string]*models.Step{
+			"first_step":  &step1,
+			"second_step": &step2,
+			"third_step":  &step3,
 		},
 	}
 
