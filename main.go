@@ -18,6 +18,7 @@ func main() {
 	step1 := models.Step{
 		ID:   "first_step",
 		Name: "First step",
+		Type: "if",
 		Execute: func(ctx *models.Context) error {
 			ctx.Logger.Println("Loading first step")
 			ctx.Data["variable_1"] = map[string]interface{}{
@@ -31,6 +32,7 @@ func main() {
 	step2 := models.Step{
 		ID:   "second_step",
 		Name: "Second step",
+		Type: "if",
 		Execute: func(ctx *models.Context) error {
 			ctx.Logger.Println("Loading second step")
 			var_1 := ctx.Data["variable_1"].(map[string]interface{})
@@ -50,6 +52,7 @@ func main() {
 	step3 := models.Step{
 		ID:   "third_step",
 		Name: "Third step",
+		Type: "if",
 		Execute: func(ctx *models.Context) error {
 			ctx.Logger.Println("Loading third step")
 			var_2 := ctx.Data["variable_2"].(map[string]interface{})

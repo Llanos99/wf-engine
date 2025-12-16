@@ -14,6 +14,9 @@ func (e *Executor) Run(wf *Workflow, ctx *Context) error {
 	current := wf.StartAt
 	for {
 		step := wf.FindStepByID(current)
+		if !step.Type.IsValid() {
+			return fmt.Errorf("Step %s not a valid type", current)
+		}
 		if step == nil {
 			return fmt.Errorf("step %s not found", current)
 		}
