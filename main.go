@@ -11,9 +11,10 @@ import (
 
 func main() {
 	ctx := &models.Context{
-		Data:        make(map[string]interface{}),
-		StepResults: make(map[string]interface{}),
-		Logger:      log.New(os.Stdout, "", log.LstdFlags),
+		Data:           make(map[string]interface{}),
+		StepResults:    make(map[string]interface{}),
+		Logger:         log.New(os.Stdout, "", log.LstdFlags),
+		ExecutionCount: make(map[string]int),
 	}
 
 	// Populate variables
