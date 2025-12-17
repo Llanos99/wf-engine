@@ -38,7 +38,7 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 			return fmt.Errorf("No handler for step type %s", step.Type)
 		}
 
-		if handlerIsValid := handler.Validate(step); handlerIsValid == nil {
+		if handlerIsValid := handler.Validate(step); handlerIsValid != nil {
 			return fmt.Errorf("Handler for step %s is not valid", step.ID)
 		}
 

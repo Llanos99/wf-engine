@@ -19,7 +19,7 @@ func main() {
 
 	// Populate variables
 	ctx.Data["variable_1"] = map[string]interface{}{
-		"val": 0,
+		"val": 1,
 	}
 
 	step1 := models.Step{
@@ -39,10 +39,18 @@ func main() {
 	}
 
 	step2 := models.Step{
-		ID:     "second_step",
-		Name:   "Second step",
-		Type:   "action",
-		Config: map[string]interface{}{},
+		ID:   "second_step",
+		Name: "Second step",
+		Type: "if-else",
+		Config: map[string]interface{}{
+			"condition": func(ctx *models.Context) bool {
+				ctx.Logger.Println("Loading second step")
+				v := ctx.Data["variable_1"].(map[string]interface{})["val"].(int)
+				return v > 0
+			},
+			"true_next":  "first_step",
+			"false_next": "third_step",
+		},
 		NextID: "third_step",
 	}
 
