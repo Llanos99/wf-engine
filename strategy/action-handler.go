@@ -7,3 +7,7 @@ type ActionHandler struct{}
 func (h *ActionHandler) Execute(ctx *models.Context, step *models.Step) (nextStepID string, err error) {
 	return "", nil
 }
+
+func (h *ActionHandler) Validate(step *models.Step) error {
+	return nil
+}

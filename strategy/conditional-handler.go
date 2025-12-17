@@ -30,3 +30,16 @@ func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (ne
 	ctx.Logger.Printf("Step %s condition FALSE then NEXT is %s", step.ID, falseNext)
 	return falseNext, nil
 }
+
+func (h *ConditionalHandler) Validate(step *models.Step) error {
+	if _, ok := step.Config["condition"].(func(*models.Context) bool); !ok {
+		return fmt.Errorf("Step %s missing condition", step.ID)
+	}
+	if _, ok := step.Config["true_next"].(string); !ok {
+		return fmt.Errorf("Step %s missing true_next", step.ID)
+	}
+	if _, ok := step.Config["false_next"].(string); !ok {
+		return fmt.Errorf("Step %s missing false_next", step.ID)
+	}
+	return nil
+}

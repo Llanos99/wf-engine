@@ -10,6 +10,8 @@ import (
 
 type Executor struct{}
 
+const MAX_LOOP_LIMIT = 20
+
 func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 	if wf.Validate() != nil {
 		return errors.New("Workflow not valid")
@@ -17,6 +19,9 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 	current := wf.StartAt
 	for {
 		step := wf.FindStepByID(current)
+		if ctx.ExecutionCount[step.ID] > MAX_LOOP_LIMIT {
+			return fmt.Errorf("Step %s has exceeded the max executions", step.ID)
+		}
 		if !step.Type.IsValid() {
 			return fmt.Errorf("Step %s not a valid type", current)
 		}
@@ -35,5 +40,6 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 			return nil
 		}
 		current = next
+		ctx.ExecutionCount[step.ID] += 1
 	}
 }
