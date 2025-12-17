@@ -1,13 +1,16 @@
-package models
+package engine
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/Llanos99/wf-engine/models"
+	"github.com/Llanos99/wf-engine/strategy"
 )
 
 type Executor struct{}
 
-func (e *Executor) Run(wf *Workflow, ctx *Context) error {
+func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 	if wf.Validate() != nil {
 		return errors.New("Workflow not valid")
 	}
@@ -20,13 +23,17 @@ func (e *Executor) Run(wf *Workflow, ctx *Context) error {
 		if step == nil {
 			return fmt.Errorf("step %s not found", current)
 		}
-		err := step.Execute(ctx)
+		handler, ok := strategy.StepHandlers[step.Type]
+		if !ok {
+			return fmt.Errorf("No handler for step type %s", step.Type)
+		}
+		next, err := handler.Execute(ctx, step)
 		if err != nil {
 			return err
 		}
-		if step.NextID == "" {
+		if next == "" {
 			return nil
 		}
-		current = step.NextID
+		current = next
 	}
 }
