@@ -11,16 +11,14 @@ import (
 
 func main() {
 	ctx := &models.Context{
-		Data:           make(map[string]interface{}),
+		Variables:      &models.Variables{Data: make(map[string]models.Variable)},
 		StepResults:    make(map[string]interface{}),
 		Logger:         log.New(os.Stdout, "", log.LstdFlags),
 		ExecutionCount: make(map[string]int),
 	}
 
 	// Populate variables
-	ctx.Data["variable_1"] = map[string]interface{}{
-		"val": 1,
-	}
+	ctx.Variables.SetInt("variable_1", 1)
 
 	step1 := models.Step{
 		ID:   "first_step",
@@ -29,7 +27,10 @@ func main() {
 		Config: map[string]interface{}{
 			"condition": func(ctx *models.Context) bool {
 				ctx.Logger.Println("Loading first step")
-				v := ctx.Data["variable_1"].(map[string]interface{})["val"].(int)
+				v, err := ctx.Variables.GetInt("variable_1")
+				if err != nil {
+					fmt.Printf("variable %s corrupted", "variable_1")
+				}
 				return v > 0
 			},
 			"true_next":  "second_step",
@@ -45,7 +46,10 @@ func main() {
 		Config: map[string]interface{}{
 			"condition": func(ctx *models.Context) bool {
 				ctx.Logger.Println("Loading second step")
-				v := ctx.Data["variable_1"].(map[string]interface{})["val"].(int)
+				v, err := ctx.Variables.GetInt("variable_1")
+				if err != nil {
+					fmt.Printf("variable %s corrupted", "variable_1")
+				}
 				return v > 0
 			},
 			"true_next":  "first_step",

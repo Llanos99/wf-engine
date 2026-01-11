@@ -12,7 +12,7 @@ const (
 )
 
 type Variables struct {
-	data map[string]Variable
+	Data map[string]Variable
 }
 
 type Variable struct {
@@ -20,20 +20,20 @@ type Variable struct {
 	Value any
 }
 
-func (v *Variables) SetNum(key string, val int) {
-	v.data[key] = Variable{Type: INT, Value: val}
+func (v *Variables) SetInt(key string, val int) {
+	v.Data[key] = Variable{Type: INT, Value: val}
 }
 
 func (v *Variables) SetBool(key string, val bool) {
-	v.data[key] = Variable{Type: BOOL, Value: val}
+	v.Data[key] = Variable{Type: BOOL, Value: val}
 }
 
 func (v *Variables) SetString(key string, val string) {
-	v.data[key] = Variable{Type: STRING, Value: val}
+	v.Data[key] = Variable{Type: STRING, Value: val}
 }
 
 func (v *Variables) GetInt(key string) (int, error) {
-	variable, ok := v.data[key]
+	variable, ok := v.Data[key]
 	if !ok {
 		return 0, fmt.Errorf("variable %s not found", key)
 	}
@@ -44,7 +44,7 @@ func (v *Variables) GetInt(key string) (int, error) {
 }
 
 func (v *Variables) GetBool(key string) (bool, error) {
-	variable, ok := v.data[key]
+	variable, ok := v.Data[key]
 	if !ok {
 		return false, fmt.Errorf("variable %s not found", key)
 	}
@@ -55,7 +55,7 @@ func (v *Variables) GetBool(key string) (bool, error) {
 }
 
 func (v *Variables) GetString(key string) (string, error) {
-	variable, ok := v.data[key]
+	variable, ok := v.Data[key]
 	if !ok {
 		return "", fmt.Errorf("variable %s not found", key)
 	}
