@@ -42,15 +42,24 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 			return fmt.Errorf("Handler for step %s is not valid", step.ID)
 		}
 
-		next, err := handler.Execute(ctx, step)
+		result, err := handler.Execute(ctx, step)
 
 		if err != nil {
 			return err
 		}
 
-		if next.NextStep == "" {
+		if result.NextStep == "" {
 			return nil
 		}
-		current = next.NextStep
+
+		switch result.Status {
+		case models.COMPLETED:
+			current = result.NextStep
+		case models.WAITING:
+			// Persist state and exit
+			return nil
+		case models.FAILED:
+			return fmt.Errorf("Execution of step %s failed", step.ID)
+		}
 	}
 }
