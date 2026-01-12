@@ -10,4 +10,5 @@ type StepHandler interface {
 var StepHandlers = map[models.StepType]StepHandler{
 	models.StepIf:     &ConditionalHandler{},
 	models.StepAction: &ActionHandler{},
+	models.StepWait:   &WaitHandler{},
 }

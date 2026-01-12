@@ -3,6 +3,7 @@ package models
 const (
 	StepIf     StepType = "if-else"
 	StepAction StepType = "action"
+	StepWait   StepType = "wait"
 )
 
 type StepType string
