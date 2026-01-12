@@ -8,11 +8,11 @@ import (
 
 type ConditionalHandler struct{}
 
-func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (nextStepID string, err error) {
+func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (executionResult *models.ExecutionResult, err error) {
 	ctx.Logger.Println("Executing IF step: ", step.ID)
 	conditionalFunc, ok := step.Config["condition"].(func(*models.Context) bool)
 	if !ok {
-		return "", fmt.Errorf("Conditional step %s has no condition", step.ID)
+		return nil, fmt.Errorf("Conditional step %s has no condition", step.ID)
 	}
 	trueNext := step.Config["true_next"].(string)
 	falseNext := step.Config["false_next"].(string)
@@ -25,10 +25,16 @@ func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (ne
 	}
 	if result {
 		ctx.Logger.Printf("Step %s condition TRUE then NEXT is %s", step.ID, trueNext)
-		return trueNext, nil
+		return &models.ExecutionResult{
+			Status:   models.COMPLETED,
+			NextStep: trueNext,
+		}, nil
 	}
 	ctx.Logger.Printf("Step %s condition FALSE then NEXT is %s", step.ID, falseNext)
-	return falseNext, nil
+	return &models.ExecutionResult{
+		Status:   models.COMPLETED,
+		NextStep: falseNext,
+	}, nil
 }
 
 func (h *ConditionalHandler) Validate(step *models.Step) error {

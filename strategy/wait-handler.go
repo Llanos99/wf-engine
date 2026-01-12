@@ -8,7 +8,7 @@ import (
 
 type WaitHandler struct{}
 
-func (h *WaitHandler) Execute(ctx *models.Context, step *models.Step) (result *models.ExecutionResult, err error) {
+func (h *WaitHandler) Execute(ctx *models.Context, step *models.Step) (executionResult *models.ExecutionResult, err error) {
 	duration := step.Config["duration_ms"].(int)
 	wakeUp := time.Now().Add(time.Duration(duration) * time.Millisecond)
 	return &models.ExecutionResult{
