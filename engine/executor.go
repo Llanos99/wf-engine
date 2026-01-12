@@ -48,9 +48,9 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 			return err
 		}
 
-		if next == "" {
+		if next.NextStep == "" {
 			return nil
 		}
-		current = next
+		current = next.NextStep
 	}
 }
