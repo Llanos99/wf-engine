@@ -14,6 +14,8 @@ func (s StepType) IsValid() bool {
 		return true
 	case StepAction:
 		return true
+	case StepWait:
+		return true
 	default:
 		return false
 	}
