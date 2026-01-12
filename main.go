@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Populate variables
-	ctx.Variables.SetInt("variable_1", 1)
+	ctx.Variables.SetInt("variable_1", 15)
 
 	step1 := models.Step{
 		ID:   "first_step",
@@ -31,7 +31,7 @@ func main() {
 				if err != nil {
 					fmt.Printf("variable %s corrupted", "variable_1")
 				}
-				return v > 0
+				return v%2 == 0
 			},
 			"true_next":  "second_step",
 			"false_next": "third_step",
@@ -50,20 +50,33 @@ func main() {
 				if err != nil {
 					fmt.Printf("variable %s corrupted", "variable_1")
 				}
-				return v > 0
+				ctx.Variables.SetInt("variable_1", v/2)
+				return (v/2)%2 == 0
 			},
-			"true_next":  "first_step",
+			"true_next":  "second_step",
 			"false_next": "third_step",
 		},
 		NextID: "third_step",
 	}
 
 	step3 := models.Step{
-		ID:     "third_step",
-		Name:   "Third step",
-		Type:   "action",
-		Config: map[string]interface{}{},
-		NextID: "",
+		ID:   "third_step",
+		Name: "Third step",
+		Type: "if-else",
+		Config: map[string]interface{}{
+			"condition": func(ctx *models.Context) bool {
+				ctx.Logger.Println("Loading third step")
+				v, err := ctx.Variables.GetInt("variable_1")
+				if err != nil {
+					fmt.Printf("variable %s corrupted", "variable_1")
+				}
+				ctx.Variables.SetInt("variable_1", 3*v+1)
+				return (3*v+1)%2 == 0
+			},
+			"true_next":  "second_step",
+			"false_next": "third_step",
+		},
+		NextID: "fourth_step",
 	}
 
 	wf := &models.Workflow{
