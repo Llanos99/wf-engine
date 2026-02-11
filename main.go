@@ -6,12 +6,13 @@ import (
 	"os"
 
 	"github.com/Llanos99/wf-engine/engine"
-	"github.com/Llanos99/wf-engine/models"
+	"github.com/Llanos99/wf-engine/internal/domain"
+	"github.com/Llanos99/wf-engine/runtime"
 )
 
 func main() {
-	ctx := &models.Context{
-		Variables:      &models.Variables{Data: make(map[string]models.Variable)},
+	ctx := &runtime.Context{
+		Variables:      &domain.Variables{Data: make(map[string]domain.Variable)},
 		StepResults:    make(map[string]interface{}),
 		Logger:         log.New(os.Stdout, "", log.LstdFlags),
 		ExecutionCount: make(map[string]int),
@@ -20,12 +21,12 @@ func main() {
 	// Populate variables
 	ctx.Variables.SetInt("variable_1", 15)
 
-	step1 := models.Step{
+	step1 := domain.Step{
 		ID:   "first_step",
 		Name: "First step",
 		Type: "if-else",
 		Config: map[string]interface{}{
-			"condition": func(ctx *models.Context) bool {
+			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading first step")
 				v, err := ctx.Variables.GetInt("variable_1")
 				if err != nil {
@@ -39,12 +40,12 @@ func main() {
 		NextID: "second_step",
 	}
 
-	step2 := models.Step{
+	step2 := domain.Step{
 		ID:   "second_step",
 		Name: "Second step",
 		Type: "if-else",
 		Config: map[string]interface{}{
-			"condition": func(ctx *models.Context) bool {
+			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading second step")
 				v, err := ctx.Variables.GetInt("variable_1")
 				if err != nil {
@@ -59,12 +60,12 @@ func main() {
 		NextID: "third_step",
 	}
 
-	step3 := models.Step{
+	step3 := domain.Step{
 		ID:   "third_step",
 		Name: "Third step",
 		Type: "if-else",
 		Config: map[string]interface{}{
-			"condition": func(ctx *models.Context) bool {
+			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading third step")
 				v, err := ctx.Variables.GetInt("variable_1")
 				if err != nil {
@@ -79,9 +80,9 @@ func main() {
 		NextID: "fourth_step",
 	}
 
-	wf := &models.Workflow{
+	wf := &domain.Workflow{
 		StartAt: "first_step",
-		Steps: map[string]*models.Step{
+		Steps: map[string]*domain.Step{
 			"first_step":  &step1,
 			"second_step": &step2,
 			"third_step":  &step3,

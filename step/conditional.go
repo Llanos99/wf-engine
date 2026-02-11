@@ -1,16 +1,17 @@
-package strategy
+package step
 
 import (
 	"fmt"
 
-	"github.com/Llanos99/wf-engine/models"
+	"github.com/Llanos99/wf-engine/internal/domain"
+	"github.com/Llanos99/wf-engine/runtime"
 )
 
 type ConditionalHandler struct{}
 
-func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (executionResult *models.ExecutionResult, err error) {
+func (h *ConditionalHandler) Execute(ctx *runtime.Context, step *domain.Step) (executionResult *runtime.ExecutionResult, err error) {
 	ctx.Logger.Println("Executing IF step: ", step.ID)
-	conditionalFunc, ok := step.Config["condition"].(func(*models.Context) bool)
+	conditionalFunc, ok := step.Config["condition"].(func(*runtime.Context) bool)
 	if !ok {
 		return nil, fmt.Errorf("Conditional step %s has no condition", step.ID)
 	}
@@ -25,20 +26,20 @@ func (h *ConditionalHandler) Execute(ctx *models.Context, step *models.Step) (ex
 	}
 	if result {
 		ctx.Logger.Printf("Step %s condition TRUE then NEXT is %s", step.ID, trueNext)
-		return &models.ExecutionResult{
-			Status:   models.COMPLETED,
+		return &runtime.ExecutionResult{
+			Status:   runtime.COMPLETED,
 			NextStep: trueNext,
 		}, nil
 	}
 	ctx.Logger.Printf("Step %s condition FALSE then NEXT is %s", step.ID, falseNext)
-	return &models.ExecutionResult{
-		Status:   models.COMPLETED,
+	return &runtime.ExecutionResult{
+		Status:   runtime.COMPLETED,
 		NextStep: falseNext,
 	}, nil
 }
 
-func (h *ConditionalHandler) Validate(step *models.Step) error {
-	if _, ok := step.Config["condition"].(func(*models.Context) bool); !ok {
+func (h *ConditionalHandler) Validate(step *domain.Step) error {
+	if _, ok := step.Config["condition"].(func(*runtime.Context) bool); !ok {
 		return fmt.Errorf("Step %s missing condition", step.ID)
 	}
 	if _, ok := step.Config["true_next"].(string); !ok {

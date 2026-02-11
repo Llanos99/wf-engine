@@ -1,4 +1,4 @@
-package models
+package domain
 
 type WorkflowDefinition struct {
 	ID    string             `yaml:"id" json:"id"`

@@ -4,45 +4,45 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Llanos99/wf-engine/models"
-	"github.com/Llanos99/wf-engine/strategy"
+	"github.com/Llanos99/wf-engine/internal/domain"
+	"github.com/Llanos99/wf-engine/runtime"
+	"github.com/Llanos99/wf-engine/step"
 )
 
 type Executor struct{}
 
 const MAX_LOOP_LIMIT = 20
 
-func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
+func (e *Executor) Run(wf *domain.Workflow, ctx *runtime.Context) error {
 	if wf.Validate() != nil {
 		return errors.New("Workflow not valid")
 	}
 	current := wf.StartAt
 	for {
-		step := wf.FindStepByID(current)
+		currStep := wf.FindStepByID(current)
 
-		if step == nil {
-			return fmt.Errorf("step %s not found", current)
+		if currStep == nil {
+			return fmt.Errorf("currStep %s not found", current)
 		}
 
-		ctx.ExecutionCount[step.ID] += 1
-		if ctx.ExecutionCount[step.ID] > MAX_LOOP_LIMIT {
-			return fmt.Errorf("Step %s has exceeded the max executions (%d)", step.ID, MAX_LOOP_LIMIT)
+		ctx.ExecutionCount[currStep.ID] += 1
+		if ctx.ExecutionCount[currStep.ID] > MAX_LOOP_LIMIT {
+			return fmt.Errorf("Step %s has exceeded the max executions (%d)", currStep.ID, MAX_LOOP_LIMIT)
 		}
 
-		if !step.Type.IsValid() {
+		if !currStep.Type.IsValid() {
 			return fmt.Errorf("Step %s not a valid type", current)
 		}
-
-		handler, ok := strategy.StepHandlers[step.Type]
+		handler, ok := step.StepHandlers[currStep.Type]
 		if !ok {
-			return fmt.Errorf("No handler for step type %s", step.Type)
+			return fmt.Errorf("No handler for currStep type %s", currStep.Type)
 		}
 
-		if handlerIsValid := handler.Validate(step); handlerIsValid != nil {
-			return fmt.Errorf("Handler for step %s is not valid", step.ID)
+		if handlerIsValid := handler.Validate(currStep); handlerIsValid != nil {
+			return fmt.Errorf("Handler for currStep %s is not valid", currStep.ID)
 		}
 
-		result, err := handler.Execute(ctx, step)
+		result, err := handler.Execute(ctx, currStep)
 
 		if err != nil {
 			return err
@@ -53,13 +53,13 @@ func (e *Executor) Run(wf *models.Workflow, ctx *models.Context) error {
 		}
 
 		switch result.Status {
-		case models.COMPLETED:
+		case runtime.COMPLETED:
 			current = result.NextStep
-		case models.WAITING:
+		case runtime.WAITING:
 			// Persist state and exit
 			return nil
-		case models.FAILED:
-			return fmt.Errorf("Execution of step %s failed", step.ID)
+		case runtime.FAILED:
+			return fmt.Errorf("Execution of currStep %s failed", currStep.ID)
 		}
 	}
 }
