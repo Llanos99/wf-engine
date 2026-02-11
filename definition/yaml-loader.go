@@ -9,14 +9,14 @@ import (
 
 type YAMLLoader struct{}
 
-func (l *YAMLLoader) Load(path string) (*domain.WorkflowDefinition, error) {
+func (l *YAMLLoader) Load(path string) (wf *domain.WorkflowDefinition, err error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var wf domain.WorkflowDefinition
-	if err := yaml.Unmarshal(data, &wf); err != nil {
+	var generatedWF domain.WorkflowDefinition
+	if err := yaml.Unmarshal(data, &generatedWF); err != nil {
 		return nil, err
 	}
-	return &wf, nil
+	return &generatedWF, nil
 }
