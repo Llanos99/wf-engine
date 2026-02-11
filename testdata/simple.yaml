@@ -1,0 +1,36 @@
+id: simple_wait_flow
+start: step1
+
+steps:
+  step1:
+    type: action
+    action: print
+    params:
+      message: "Starting workflow"
+    next: step2
+
+  step2:
+    type: wait
+    duration: 10s
+    next: step3
+
+  step3:
+    type: if-else
+    params:
+      variable: counter
+      operator: gt
+      value: 5
+    true_next: step4
+    false_next: step5
+
+  step4:
+    type: action
+    action: print
+    params:
+      message: "Condition true"
+
+  step5:
+    type: action
+    action: print
+    params:
+      message: "Condition false"
