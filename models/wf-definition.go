@@ -1,9 +1,9 @@
 package models
 
 type WorkflowDefinition struct {
-	ID    string          `yaml:"id" json:"id"`
-	Start string          `yaml:"start" json:"start"`
-	Steps map[string]Step `yaml:"steps" json:"steps"`
+	ID    string             `yaml:"id" json:"id"`
+	Start string             `yaml:"start" json:"start"`
+	Steps map[string]StepDef `yaml:"steps" json:"steps"`
 }
 
 type StepDef struct {
