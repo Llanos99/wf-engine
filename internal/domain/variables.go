@@ -4,63 +4,80 @@ import "fmt"
 
 type VariableType int
 
-const (
-	BOOL VariableType = iota
-	INT
-	STRING
-	LIST
-)
+type Variables map[string]interface{}
 
-type Variables struct {
-	Data map[string]Variable
+func NewVariables() Variables {
+	return make(Variables)
 }
 
-type Variable struct {
-	Type  VariableType
-	Value any
+func (v Variables) SetBool(key string, value bool) {
+	v[key] = value
 }
 
-func (v *Variables) SetInt(key string, val int) {
-	v.Data[key] = Variable{Type: INT, Value: val}
+func (v Variables) SetString(key string, value string) {
+	v[key] = value
 }
 
-func (v *Variables) SetBool(key string, val bool) {
-	v.Data[key] = Variable{Type: BOOL, Value: val}
+func (v Variables) SetFloat(key string, value float64) {
+	v[key] = value
 }
 
-func (v *Variables) SetString(key string, val string) {
-	v.Data[key] = Variable{Type: STRING, Value: val}
+func (v Variables) SetArray(key string, value []interface{}) {
+	v[key] = value
 }
 
-func (v *Variables) GetInt(key string) (int, error) {
-	variable, ok := v.Data[key]
-	if !ok {
-		return 0, fmt.Errorf("variable %s not found", key)
-	}
-	if variable.Type != INT {
-		return 0, fmt.Errorf("variable %s is not int", key)
-	}
-	return variable.Value.(int), nil
-}
-
-func (v *Variables) GetBool(key string) (bool, error) {
-	variable, ok := v.Data[key]
+func (v Variables) GetBool(key string) (bool, error) {
+	val, ok := v[key]
 	if !ok {
 		return false, fmt.Errorf("variable %s not found", key)
 	}
-	if variable.Type != BOOL {
-		return false, fmt.Errorf("variable %s is not bool", key)
+	b, ok := val.(bool)
+	if !ok {
+		return false, fmt.Errorf("variable %s is not a bool", key)
 	}
-	return variable.Value.(bool), nil
+	return b, nil
 }
 
-func (v *Variables) GetString(key string) (string, error) {
-	variable, ok := v.Data[key]
+func (v Variables) GetString(key string) (string, error) {
+	val, ok := v[key]
 	if !ok {
-		return "", fmt.Errorf("variable %s not found", key)
+		return "", fmt.Errorf("variable %s nto found", key)
 	}
-	if variable.Type != STRING {
-		return "", fmt.Errorf("variable %s is not string", key)
+	str, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("variable %s is not a string", key)
 	}
-	return variable.Value.(string), nil
+	return str, nil
+}
+
+func (v Variables) GetFloat(key string) (float64, error) {
+	val, ok := v[key]
+	if !ok {
+		return 0, fmt.Errorf("variable %s not found", key)
+	}
+	switch n := val.(type) {
+	case float64:
+		return n, nil
+	case int:
+		return float64(n), nil
+	default:
+		return 0, fmt.Errorf("variable %s is not a number", key)
+	}
+}
+
+func (v Variables) GetArray(key string) ([]interface{}, error) {
+	val, ok := v[key]
+	if !ok {
+		return nil, fmt.Errorf("variable %s not found", key)
+	}
+	arr, ok := val.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("variable %s is not an array", key)
+	}
+	return arr, nil
+}
+
+func (v Variables) Get(key string) (interface{}, bool) {
+	val, ok := v[key]
+	return val, ok
 }

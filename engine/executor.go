@@ -29,10 +29,6 @@ func (e *Executor) Run(wf *domain.Workflow, ctx *runtime.Context) error {
 		if ctx.ExecutionCount[currStep.ID] > MAX_LOOP_LIMIT {
 			return fmt.Errorf("Step %s has exceeded the max executions (%d)", currStep.ID, MAX_LOOP_LIMIT)
 		}
-
-		if !currStep.Type.IsValid() {
-			return fmt.Errorf("Step %s not a valid type", current)
-		}
 		handler, ok := step.StepHandlers[currStep.Type]
 		if !ok {
 			return fmt.Errorf("No handler for currStep type %s", currStep.Type)

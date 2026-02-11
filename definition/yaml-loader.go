@@ -18,5 +18,8 @@ func (l *YAMLLoader) Load(path string) (wf *domain.WorkflowDefinition, err error
 	if err := yaml.Unmarshal(data, &generatedWF); err != nil {
 		return nil, err
 	}
+	if err := generatedWF.Validate(); err != nil {
+		return nil, err
+	}
 	return &generatedWF, nil
 }

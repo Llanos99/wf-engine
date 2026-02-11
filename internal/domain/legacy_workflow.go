@@ -33,10 +33,5 @@ func (wf *Workflow) Validate() error {
 	if startStep == nil {
 		return errors.New("Start step is nil")
 	}
-	for id, step := range wf.Steps {
-		if !step.Type.IsValid() {
-			return fmt.Errorf("Invalid step type %s in step %s", step.Type, id)
-		}
-	}
 	return nil
 }

@@ -12,14 +12,14 @@ import (
 
 func main() {
 	ctx := &runtime.Context{
-		Variables:      &domain.Variables{Data: make(map[string]domain.Variable)},
+		// Variables:      &domain.Variables{Data: make(map[string]domain.Variable)},
 		StepResults:    make(map[string]interface{}),
 		Logger:         log.New(os.Stdout, "", log.LstdFlags),
 		ExecutionCount: make(map[string]int),
 	}
 
 	// Populate variables
-	ctx.Variables.SetInt("variable_1", 15)
+	// ctx.Variables.SetInt("variable_1", 15)
 
 	step1 := domain.Step{
 		ID:   "first_step",
@@ -28,10 +28,11 @@ func main() {
 		Config: map[string]interface{}{
 			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading first step")
-				v, err := ctx.Variables.GetInt("variable_1")
-				if err != nil {
-					fmt.Printf("variable %s corrupted", "variable_1")
-				}
+				// v, err := ctx.Variables.GetInt("variable_1")
+				// if err != nil {
+				// 	fmt.Printf("variable %s corrupted", "variable_1")
+				// }
+				var v = 4
 				return v%2 == 0
 			},
 			"true_next":  "second_step",
@@ -47,11 +48,12 @@ func main() {
 		Config: map[string]interface{}{
 			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading second step")
-				v, err := ctx.Variables.GetInt("variable_1")
-				if err != nil {
-					fmt.Printf("variable %s corrupted", "variable_1")
-				}
-				ctx.Variables.SetInt("variable_1", v/2)
+				// v, err := ctx.Variables.GetInt("variable_1")
+				// if err != nil {
+				// 	fmt.Printf("variable %s corrupted", "variable_1")
+				// }
+				// ctx.Variables.SetInt("variable_1", v/2)
+				var v = 2
 				return (v/2)%2 == 0
 			},
 			"true_next":  "second_step",
@@ -67,11 +69,12 @@ func main() {
 		Config: map[string]interface{}{
 			"condition": func(ctx *runtime.Context) bool {
 				ctx.Logger.Println("Loading third step")
-				v, err := ctx.Variables.GetInt("variable_1")
-				if err != nil {
-					fmt.Printf("variable %s corrupted", "variable_1")
-				}
-				ctx.Variables.SetInt("variable_1", 3*v+1)
+				// v, err := ctx.Variables.GetInt("variable_1")
+				// if err != nil {
+				// 	fmt.Printf("variable %s corrupted", "variable_1")
+				// }
+				// ctx.Variables.SetInt("variable_1", 3*v+1)
+				var v = 1
 				return (3*v+1)%2 == 0
 			},
 			"true_next":  "second_step",

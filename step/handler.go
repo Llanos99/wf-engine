@@ -11,7 +11,7 @@ type StepHandler interface {
 }
 
 var StepHandlers = map[domain.StepType]StepHandler{
-	domain.StepIf:     &ConditionalHandler{},
-	domain.StepAction: &ActionHandler{},
-	domain.StepWait:   &WaitHandler{},
+	domain.StepTypeIf:     &ConditionalHandler{},
+	domain.StepTypeAction: &ActionHandler{},
+	domain.StepTypeWait:   &WaitHandler{},
 }
