@@ -44,7 +44,3 @@ func (h *ActionHandler) Execute(instance *domain.WorkflowInstance, step domain.S
 		NextStepID: spec.Next,
 	}, nil
 }
-
-func (h *ActionHandler) Validate(step *domain.Step) error {
-	return nil
-}
