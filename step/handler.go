@@ -6,12 +6,5 @@ import (
 )
 
 type StepHandler interface {
-	Validate(step *domain.Step) error
-	Execute(ctx *runtime.Context, step *domain.Step) (executionResult *runtime.ExecutionResult, err error)
-}
-
-var StepHandlers = map[domain.StepType]StepHandler{
-	domain.StepTypeIf:     &ConditionalHandler{},
-	domain.StepTypeAction: &ActionHandler{},
-	domain.StepTypeWait:   &WaitHandler{},
+	Execute(instance *domain.WorkflowInstance, step domain.StepDefinition) (*runtime.ExecutionResult, error)
 }

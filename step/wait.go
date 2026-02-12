@@ -1,6 +1,7 @@
 package step
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/Llanos99/wf-engine/internal/domain"
@@ -9,16 +10,22 @@ import (
 
 type WaitHandler struct{}
 
-func (h *WaitHandler) Execute(ctx *runtime.Context, step *domain.Step) (executionResult *runtime.ExecutionResult, err error) {
-	duration := step.Config["duration_ms"].(int)
-	wakeUp := time.Now().Add(time.Duration(duration) * time.Millisecond)
-	return &runtime.ExecutionResult{
-		Status:   runtime.WAITING,
-		NextStep: step.Config["next"].(string),
-		WakeUpAt: &wakeUp,
-	}, nil
+func NewWaitHandler() *WaitHandler {
+	return &WaitHandler{}
 }
 
-func (h *WaitHandler) Validate(step *domain.Step) error {
-	return nil
+func (h *WaitHandler) Execute(instance *domain.WorkflowInstance, step domain.StepDefinition) (*runtime.ExecutionResult, error) {
+	var spec domain.WaitSpec
+	if err := json.Unmarshal(step.Spec, &spec); err != nil {
+		return nil, err
+	}
+	duration, err := time.ParseDuration(spec.Duration)
+	if err != nil {
+		return nil, err
+	}
+	waitUntil := time.Now().Add(duration)
+	return &runtime.ExecutionResult{
+		WaitUntil:  &waitUntil,
+		NextStepID: spec.Next,
+	}, nil
 }

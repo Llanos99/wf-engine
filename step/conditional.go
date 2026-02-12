@@ -1,52 +1,33 @@
 package step
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"github.com/Llanos99/wf-engine/internal/domain"
 	"github.com/Llanos99/wf-engine/runtime"
 )
 
-type ConditionalHandler struct{}
+type IfHandler struct{}
 
-func (h *ConditionalHandler) Execute(ctx *runtime.Context, step *domain.Step) (executionResult *runtime.ExecutionResult, err error) {
-	ctx.Logger.Println("Executing IF step: ", step.ID)
-	conditionalFunc, ok := step.Config["condition"].(func(*runtime.Context) bool)
-	if !ok {
-		return nil, fmt.Errorf("Conditional step %s has no condition", step.ID)
-	}
-	trueNext := step.Config["true_next"].(string)
-	falseNext := step.Config["false_next"].(string)
-	var result = conditionalFunc(ctx)
-	// Write the StepResults
-	ctx.StepResults[step.ID] = map[string]interface{}{
-		"type":   "if",
-		"result": result,
-		"status": "done",
-	}
-	if result {
-		ctx.Logger.Printf("Step %s condition TRUE then NEXT is %s", step.ID, trueNext)
-		return &runtime.ExecutionResult{
-			Status:   runtime.COMPLETED,
-			NextStep: trueNext,
-		}, nil
-	}
-	ctx.Logger.Printf("Step %s condition FALSE then NEXT is %s", step.ID, falseNext)
-	return &runtime.ExecutionResult{
-		Status:   runtime.COMPLETED,
-		NextStep: falseNext,
-	}, nil
+func NewIfHandler() *IfHandler {
+	return &IfHandler{}
 }
 
-func (h *ConditionalHandler) Validate(step *domain.Step) error {
-	if _, ok := step.Config["condition"].(func(*runtime.Context) bool); !ok {
-		return fmt.Errorf("Step %s missing condition", step.ID)
+func (h *IfHandler) Execute(instance *domain.WorkflowInstance, step domain.StepDefinition) (*runtime.ExecutionResult, error) {
+	var spec domain.IfSpec
+	if err := json.Unmarshal(step.Spec, &spec); err != nil {
+		return nil, err
 	}
-	if _, ok := step.Config["true_next"].(string); !ok {
-		return fmt.Errorf("Step %s missing true_next", step.ID)
+	result, err := spec.Expression.Evaluate(instance.Variables)
+	if err != nil {
+		return nil, err
 	}
-	if _, ok := step.Config["false_next"].(string); !ok {
-		return fmt.Errorf("Step %s missing false_next", step.ID)
+	if result {
+		return &runtime.ExecutionResult{
+			NextStepID: spec.TrueNext,
+		}, nil
 	}
-	return nil
+	return &runtime.ExecutionResult{
+		NextStepID: spec.FalseNext,
+	}, nil
 }

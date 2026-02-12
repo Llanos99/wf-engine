@@ -1,105 +1,31 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-
+	"github.com/Llanos99/wf-engine/definition"
 	"github.com/Llanos99/wf-engine/engine"
 	"github.com/Llanos99/wf-engine/internal/domain"
-	"github.com/Llanos99/wf-engine/runtime"
+	"github.com/Llanos99/wf-engine/step"
 )
 
 func main() {
-	ctx := &runtime.Context{
-		// Variables:      &domain.Variables{Data: make(map[string]domain.Variable)},
-		StepResults:    make(map[string]interface{}),
-		Logger:         log.New(os.Stdout, "", log.LstdFlags),
-		ExecutionCount: make(map[string]int),
-	}
-
-	// Populate variables
-	// ctx.Variables.SetInt("variable_1", 15)
-
-	step1 := domain.Step{
-		ID:   "first_step",
-		Name: "First step",
-		Type: "if-else",
-		Config: map[string]interface{}{
-			"condition": func(ctx *runtime.Context) bool {
-				ctx.Logger.Println("Loading first step")
-				// v, err := ctx.Variables.GetInt("variable_1")
-				// if err != nil {
-				// 	fmt.Printf("variable %s corrupted", "variable_1")
-				// }
-				var v = 4
-				return v%2 == 0
-			},
-			"true_next":  "second_step",
-			"false_next": "third_step",
-		},
-		NextID: "second_step",
-	}
-
-	step2 := domain.Step{
-		ID:   "second_step",
-		Name: "Second step",
-		Type: "if-else",
-		Config: map[string]interface{}{
-			"condition": func(ctx *runtime.Context) bool {
-				ctx.Logger.Println("Loading second step")
-				// v, err := ctx.Variables.GetInt("variable_1")
-				// if err != nil {
-				// 	fmt.Printf("variable %s corrupted", "variable_1")
-				// }
-				// ctx.Variables.SetInt("variable_1", v/2)
-				var v = 2
-				return (v/2)%2 == 0
-			},
-			"true_next":  "second_step",
-			"false_next": "third_step",
-		},
-		NextID: "third_step",
-	}
-
-	step3 := domain.Step{
-		ID:   "third_step",
-		Name: "Third step",
-		Type: "if-else",
-		Config: map[string]interface{}{
-			"condition": func(ctx *runtime.Context) bool {
-				ctx.Logger.Println("Loading third step")
-				// v, err := ctx.Variables.GetInt("variable_1")
-				// if err != nil {
-				// 	fmt.Printf("variable %s corrupted", "variable_1")
-				// }
-				// ctx.Variables.SetInt("variable_1", 3*v+1)
-				var v = 1
-				return (3*v+1)%2 == 0
-			},
-			"true_next":  "second_step",
-			"false_next": "third_step",
-		},
-		NextID: "fourth_step",
-	}
-
-	wf := &domain.Workflow{
-		StartAt: "first_step",
-		Steps: map[string]*domain.Step{
-			"first_step":  &step1,
-			"second_step": &step2,
-			"third_step":  &step3,
-		},
-	}
-
-	executor := &engine.Executor{}
-
-	err := executor.Run(wf, ctx)
+	loader, err := definition.GetLoader("yaml")
 	if err != nil {
-		fmt.Println("Workflow error: ", err)
-		return
+		panic(err)
 	}
-	fmt.Println("Workflow completed!")
+	def, err := loader.Load("testdata/collatz.yaml")
+	if err != nil {
+		panic(err)
+	}
+	instance := domain.NewWorkflowInstance("collatz-1", def)
 
-	// What's next?
+	registry := step.NewRegistry()
+	registry.Register(domain.StepTypeIf, step.NewIfHandler())
+	registry.Register(domain.StepTypeAction, step.NewActionHandler())
+
+	executor := engine.NewExecutor(registry)
+
+	err = executor.Execute(def, instance)
+	if err != nil {
+		panic(err)
+	}
 }

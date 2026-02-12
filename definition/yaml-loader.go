@@ -1,6 +1,7 @@
 package definition
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/Llanos99/wf-engine/internal/domain"
@@ -9,17 +10,22 @@ import (
 
 type YAMLLoader struct{}
 
-func (l *YAMLLoader) Load(path string) (wf *domain.WorkflowDefinition, err error) {
+func (l *YAMLLoader) Load(path string) (*domain.WorkflowDefinition, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var generatedWF domain.WorkflowDefinition
-	if err := yaml.Unmarshal(data, &generatedWF); err != nil {
+	var raw map[string]interface{}
+	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
-	if err := generatedWF.Validate(); err != nil {
+	jsonData, err := json.Marshal(raw)
+	if err != nil {
 		return nil, err
 	}
-	return &generatedWF, nil
+	var def domain.WorkflowDefinition
+	if err := json.Unmarshal(jsonData, &def); err != nil {
+		return nil, err
+	}
+	return &def, nil
 }

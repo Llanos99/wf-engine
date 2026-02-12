@@ -2,60 +2,56 @@ package engine
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/Llanos99/wf-engine/internal/domain"
-	"github.com/Llanos99/wf-engine/runtime"
 	"github.com/Llanos99/wf-engine/step"
 )
 
-type Executor struct{}
-
 const MAX_LOOP_LIMIT = 20
 
-func (e *Executor) Run(wf *domain.Workflow, ctx *runtime.Context) error {
-	if wf.Validate() != nil {
-		return errors.New("Workflow not valid")
-	}
-	current := wf.StartAt
-	for {
-		currStep := wf.FindStepByID(current)
+type Executor struct {
+	registry *step.Registry
+}
 
-		if currStep == nil {
-			return fmt.Errorf("currStep %s not found", current)
-		}
+func NewExecutor(registry *step.Registry) *Executor {
+	return &Executor{registry: registry}
+}
 
-		ctx.ExecutionCount[currStep.ID] += 1
-		if ctx.ExecutionCount[currStep.ID] > MAX_LOOP_LIMIT {
-			return fmt.Errorf("Step %s has exceeded the max executions (%d)", currStep.ID, MAX_LOOP_LIMIT)
-		}
-		handler, ok := step.StepHandlers[currStep.Type]
+func (e *Executor) Execute(def *domain.WorkflowDefinition, instance *domain.WorkflowInstance) error {
+	// While instance.status == running
+	for instance.Status == domain.StatusRunning {
+		stepDef, ok := def.Steps[instance.CurrentStep]
 		if !ok {
-			return fmt.Errorf("No handler for currStep type %s", currStep.Type)
+			instance.SetStatus(domain.StatusFailed)
+			return errors.New("step not found: " + instance.CurrentStep)
 		}
-
-		if handlerIsValid := handler.Validate(currStep); handlerIsValid != nil {
-			return fmt.Errorf("Handler for currStep %s is not valid", currStep.ID)
+		handler := e.registry.Get(stepDef.Type)
+		if handler == nil {
+			instance.SetStatus(domain.StatusFailed)
+			return errors.New("no handler for step type: " + string(stepDef.Type))
 		}
-
-		result, err := handler.Execute(ctx, currStep)
-
+		result, err := handler.Execute(instance, stepDef)
 		if err != nil {
+			instance.SetStatus(domain.StatusFailed)
 			return err
 		}
-
-		if result.NextStep == "" {
+		if result.Error != nil {
+			instance.SetStatus(domain.StatusFailed)
+			return result.Error
+		}
+		if result.Finished {
+			instance.SetStatus(domain.StatusFinished)
 			return nil
 		}
-
-		switch result.Status {
-		case runtime.COMPLETED:
-			current = result.NextStep
-		case runtime.WAITING:
-			// Persist state and exit
+		if result.WaitUntil != nil {
+			instance.SetStatus(domain.StatusWaiting)
 			return nil
-		case runtime.FAILED:
-			return fmt.Errorf("Execution of currStep %s failed", currStep.ID)
 		}
+		if result.NextStepID == "" {
+			instance.SetStatus(domain.StatusFinished)
+			return nil
+		}
+		instance.MoveTo(result.NextStepID)
 	}
+	return nil
 }
