@@ -3,10 +3,12 @@ package domain
 type Operator string
 
 const (
-	OpEquals      Operator = "eq"
-	OpNotEquals   Operator = "neq"
-	OpGreaterThan Operator = "gt"
-	OpLessThan    Operator = "lt"
+	OpEquals           Operator = "=="
+	OpNotEquals        Operator = "!="
+	OpGreaterThan      Operator = ">"
+	OpLessThan         Operator = "<"
+	OpGreaterThanEqual Operator = ">="
+	OpLessThanEqual    Operator = "<="
 )
 
 type Expression struct {

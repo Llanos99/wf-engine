@@ -1,58 +1,101 @@
 package domain
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type WorkflowStatus string
 
 const (
-	StatusRunning  WorkflowStatus = "running"
-	StatusWaiting  WorkflowStatus = "waiting"
-	StatusFailed   WorkflowStatus = "failed"
-	StatusFinished WorkflowStatus = "finished"
+	StatusPending  WorkflowStatus = "pending"  // Creado pero no iniciado
+	StatusRunning  WorkflowStatus = "running"  // En ejecución
+	StatusWaiting  WorkflowStatus = "waiting"  // Esperando (timer, approval, etc)
+	StatusFailed   WorkflowStatus = "failed"   // Error
+	StatusFinished WorkflowStatus = "finished" // Completado exitosamente
 )
 
+// WorkflowInstance representa una ejecución específica de un workflow
 type WorkflowInstance struct {
-	ID           string         `yaml:"id" json:"id"`
-	DefinitionID string         `yaml:"definition_id" json:"definition_id"`
-	Version      int            `yaml:"version" json:"version"`
-	Status       WorkflowStatus `yaml:"status" json:"status"`
-	CurrentStep  string         `yaml:"current_step" json:"current_step"`
-	Variables    Variables      `yaml:"variables" json:"variables"`
-	CreatedAt    time.Time      `yaml:"created_at" json:"created_at"`
-	UpdatedAt    time.Time      `yaml:"updated_at" json:"updated_at"`
-	FinishedAt   time.Time      `yaml:"finished_at" json:"finished_at"`
+	ID           string         `json:"id"`
+	DefinitionID string         `json:"definition_id"`
+	Version      int            `json:"version"`
+	Status       WorkflowStatus `json:"status"`
+	CurrentNode  string         `json:"current_node"`
+	Variables    Variables      `json:"variables"`
+	Logs         []LogEntry     `json:"logs"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	FinishedAt   *time.Time     `json:"finished_at,omitempty"`
 }
 
+// LogEntry representa una entrada de log durante la ejecución
+type LogEntry struct {
+	Timestamp time.Time `json:"timestamp"`
+	Level     string    `json:"level"`
+	NodeID    string    `json:"node_id"`
+	Message   string    `json:"message"`
+}
+
+// NewWorkflowInstance crea una nueva instancia a partir de una definición
 func NewWorkflowInstance(id string, def *WorkflowDefinition) *WorkflowInstance {
 	now := time.Now()
+
+	// Copiar variables iniciales
 	vars := NewVariables()
 	if def.InitialVariables != nil {
 		for k, v := range def.InitialVariables {
 			vars[k] = v
 		}
 	}
+
+	// Encontrar el nodo Start
+	startNode, ok := def.GetStartNode()
+	currentNode := ""
+	if ok {
+		currentNode = startNode.ID
+	}
+
 	return &WorkflowInstance{
 		ID:           id,
 		DefinitionID: def.ID,
 		Version:      def.Version,
-		Status:       StatusRunning,
-		CurrentStep:  def.StartAt,
+		Status:       StatusPending,
+		CurrentNode:  currentNode,
 		Variables:    vars,
+		Logs:         make([]LogEntry, 0),
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
 }
 
+// SetStatus actualiza el estado del workflow
 func (w *WorkflowInstance) SetStatus(status WorkflowStatus) {
 	w.Status = status
 	w.UpdatedAt = time.Now()
 	if status == StatusFinished || status == StatusFailed {
 		now := time.Now()
-		w.FinishedAt = now
+		w.FinishedAt = &now
 	}
 }
 
-func (w *WorkflowInstance) MoveTo(stepID string) {
-	w.CurrentStep = stepID
+// MoveTo mueve la ejecución a otro nodo
+func (w *WorkflowInstance) MoveTo(nodeID string) {
+	w.CurrentNode = nodeID
 	w.UpdatedAt = time.Now()
+}
+
+// AddLog agrega una entrada de log
+func (w *WorkflowInstance) AddLog(level, nodeID, message string) {
+	w.Logs = append(w.Logs, LogEntry{
+		Timestamp: time.Now(),
+		Level:     level,
+		NodeID:    nodeID,
+		Message:   message,
+	})
+}
+
+// ToJSON serializa la instancia a JSON
+func (w *WorkflowInstance) ToJSON() ([]byte, error) {
+	return json.MarshalIndent(w, "", "  ")
 }

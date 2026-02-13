@@ -1,0 +1,102 @@
+id: ticket_processor
+version: 1
+name: Ticket Processor
+description: Procesa tickets de soporte y los enruta según prioridad
+
+initial_variables:
+  ticket_id: "TKT-001"
+  priority: "high"
+  assigned_to: null
+  processed: false
+
+nodes:
+  # Nodo de inicio
+  start:
+    id: start
+    type: start
+    spec:
+      next: log_start
+
+  # Log inicial
+  log_start:
+    id: log_start
+    type: log
+    spec:
+      level: info
+      message: "Processing ticket ${ticket_id} with priority ${priority}"
+      next: check_priority
+
+  # Verificar prioridad usando script
+  check_priority:
+    id: check_priority
+    type: conditional
+    spec:
+      script: |
+        var priority = workflow.vars.get("priority");
+        priority === "high" || priority === "critical";
+      true_next: handle_urgent
+      false_next: handle_normal
+
+  # Manejar ticket urgente
+  handle_urgent:
+    id: handle_urgent
+    type: run_script
+    spec:
+      script: |
+        log.info("Handling urgent ticket");
+
+        // Simular llamada HTTP para notificar
+        var response = http.post("https://api.slack.com/notify", {
+          channel: "#urgent-support",
+          message: "Urgent ticket: " + workflow.vars.get("ticket_id")
+        });
+
+        // Asignar a equipo de emergencias
+        workflow.vars.set("assigned_to", "emergency-team");
+        workflow.vars.set("escalated", true);
+
+        log.info("Ticket escalated to emergency team");
+      next: update_status
+
+  # Manejar ticket normal
+  handle_normal:
+    id: handle_normal
+    type: set_values
+    spec:
+      assignments:
+        assigned_to: "general-support"
+        escalated: false
+      next: update_status
+
+  # Actualizar estado
+  update_status:
+    id: update_status
+    type: run_script
+    spec:
+      script: |
+        // Simular actualización en base de datos
+        var ticketId = workflow.vars.get("ticket_id");
+        var assignedTo = workflow.vars.get("assigned_to");
+
+        db.execute("UPDATE tickets SET assigned_to = '" + assignedTo + "' WHERE id = '" + ticketId + "'");
+
+        workflow.vars.set("processed", true);
+        workflow.vars.set("processed_at", new Date().toISOString());
+
+        console.log("Ticket processed successfully");
+      next: log_end
+
+  # Log final
+  log_end:
+    id: log_end
+    type: log
+    spec:
+      level: info
+      message: "Ticket ${ticket_id} assigned to ${assigned_to}. Escalated: ${escalated}"
+      next: end
+
+  # Fin del workflow
+  end:
+    id: end
+    type: end
+    spec: {}

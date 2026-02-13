@@ -41,7 +41,7 @@ func (v Variables) GetBool(key string) (bool, error) {
 func (v Variables) GetString(key string) (string, error) {
 	val, ok := v[key]
 	if !ok {
-		return "", fmt.Errorf("variable %s nto found", key)
+		return "", fmt.Errorf("variable %s not found", key)
 	}
 	str, ok := val.(string)
 	if !ok {
