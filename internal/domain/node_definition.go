@@ -13,6 +13,7 @@ const (
 	NodeTypeConditional NodeType = "conditional"
 	NodeTypeWait        NodeType = "wait"
 	NodeTypeLog         NodeType = "log"
+	NodeTypeApproval    NodeType = "approval"
 )
 
 // NodeDefinition es la definición de un nodo en el workflow

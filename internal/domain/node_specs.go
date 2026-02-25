@@ -43,3 +43,13 @@ type LogSpec struct {
 	Message string `yaml:"message" json:"message"` // Puede contener ${variable} para interpolación
 	Next    string `yaml:"next" json:"next"`
 }
+
+// ApprovalSpec define un nodo que requiere aprobación humana
+type ApprovalSpec struct {
+	Title        string   `yaml:"title" json:"title"`                                   // Título de la aprobación
+	Description  string   `yaml:"description,omitempty" json:"description,omitempty"`   // Descripción detallada
+	Approvers    []string `yaml:"approvers,omitempty" json:"approvers,omitempty"`       // Lista de aprobadores permitidos
+	Timeout      string   `yaml:"timeout,omitempty" json:"timeout,omitempty"`           // Tiempo límite: "24h", "7d"
+	ApprovedNext string   `yaml:"approved_next" json:"approved_next"`                   // Siguiente nodo si aprobado
+	RejectedNext string   `yaml:"rejected_next,omitempty" json:"rejected_next,omitempty"` // Siguiente nodo si rechazado (opcional)
+}

@@ -1,0 +1,82 @@
+id: expense-approval
+version: 1
+name: Expense Approval Workflow
+description: A workflow that requires manager approval for expenses over $100
+
+initial_variables:
+  expense_amount: 150
+  expense_description: "Office supplies"
+  requester: "john.doe@company.com"
+
+nodes:
+  start:
+    id: start
+    type: start
+    spec:
+      next: check_amount
+
+  check_amount:
+    id: check_amount
+    type: conditional
+    spec:
+      expression:
+        left: "expense_amount"
+        operator: ">"
+        right: 100
+      true_next: request_approval
+      false_next: auto_approve
+
+  auto_approve:
+    id: auto_approve
+    type: log
+    spec:
+      level: info
+      message: "Expense of $${expense_amount} auto-approved (under $100)"
+      next: process_expense
+
+  request_approval:
+    id: request_approval
+    type: approval
+    spec:
+      title: "Expense Approval Required: $${expense_amount}"
+      description: "${expense_description} - Requested by ${requester}"
+      approvers:
+        - "manager@company.com"
+        - "finance@company.com"
+      timeout: "7d"
+      approved_next: process_expense
+      rejected_next: notify_rejection
+
+  process_expense:
+    id: process_expense
+    type: run_script
+    spec:
+      script: |
+        var amount = workflow.vars.get("expense_amount");
+        var decision = workflow.vars.get("_approval_decision") || "auto";
+
+        log.info("Processing expense of $" + amount);
+        workflow.vars.set("processed", true);
+        workflow.vars.set("approval_type", decision);
+      next: log_success
+
+  notify_rejection:
+    id: notify_rejection
+    type: log
+    spec:
+      level: warn
+      message: "Expense rejected by ${_approval_decided_by}: ${_approval_notes}"
+      next: end
+
+  log_success:
+    id: log_success
+    type: log
+    spec:
+      level: info
+      message: "Expense workflow completed successfully"
+      next: end
+
+  end:
+    id: end
+    type: end
+    spec: {}

@@ -49,16 +49,25 @@ func main() {
 	// Crear executor
 	executor := engine.NewExecutor(nodeRegistry, scriptRunner)
 
-	fmt.Println("--- Execution Start ---\n")
+	fmt.Println("--- Execution Start ---")
 
 	// Ejecutar
-	err = executor.Execute(def, instance)
+	output, err := executor.Execute(def, instance)
 	if err != nil {
 		fmt.Printf("\nError: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("\n--- Execution End ---")
+
+	// Check if waiting for approval
+	if output != nil && output.PendingApproval != nil {
+		fmt.Printf("\nPending Approval: %s\n", output.PendingApproval.Title)
+		fmt.Printf("  ID: %s\n", output.PendingApproval.ID)
+		if output.PendingApproval.Description != "" {
+			fmt.Printf("  Description: %s\n", output.PendingApproval.Description)
+		}
+	}
 
 	// Mostrar resultado
 	fmt.Printf("\nStatus: %s\n", instance.Status)

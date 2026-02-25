@@ -56,9 +56,34 @@ type InstanceFilter struct {
 	Offset       int
 }
 
+// ApprovalRepository maneja la persistencia de ApprovalRequests
+type ApprovalRepository interface {
+	// Create crea una nueva solicitud de aprobación
+	Create(ctx context.Context, approval *domain.ApprovalRequest) error
+
+	// Get obtiene una solicitud por ID
+	Get(ctx context.Context, id string) (*domain.ApprovalRequest, error)
+
+	// GetByInstance obtiene todas las solicitudes de una instancia
+	GetByInstance(ctx context.Context, instanceID string) ([]*domain.ApprovalRequest, error)
+
+	// GetPending obtiene la solicitud pendiente de una instancia (si existe)
+	GetPendingByInstance(ctx context.Context, instanceID string) (*domain.ApprovalRequest, error)
+
+	// Update actualiza una solicitud (para aprobar/rechazar)
+	Update(ctx context.Context, approval *domain.ApprovalRequest) error
+
+	// ListPending lista todas las solicitudes pendientes
+	ListPending(ctx context.Context) ([]*domain.ApprovalRequest, error)
+
+	// Delete elimina una solicitud
+	Delete(ctx context.Context, id string) error
+}
+
 // Store agrupa todos los repositorios
 type Store interface {
 	Definitions() DefinitionRepository
 	Instances() InstanceRepository
+	Approvals() ApprovalRepository
 	Close() error
 }

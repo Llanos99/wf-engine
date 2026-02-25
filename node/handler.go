@@ -1,8 +1,6 @@
 package node
 
-import (
-	"github.com/Llanos99/wf-engine/internal/domain"
-)
+import "github.com/Llanos99/wf-engine/internal/domain"
 
 // ExecutionResult es el resultado de ejecutar un nodo
 type ExecutionResult struct {
@@ -10,8 +8,11 @@ type ExecutionResult struct {
 	// Vacío si el workflow debe terminar
 	NextNodeID string
 
-	// WaitUntil indica que el workflow debe pausarse hasta esta fecha
+	// WaitUntil indica que el workflow debe pausarse hasta esta fecha (ISO8601)
 	WaitUntil *string
+
+	// WaitForApproval contiene la solicitud de aprobación pendiente
+	WaitForApproval *domain.ApprovalRequest
 
 	// Finished indica que el workflow ha terminado exitosamente
 	Finished bool

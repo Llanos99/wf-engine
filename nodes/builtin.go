@@ -14,6 +14,7 @@ func RegisterBuiltin(r *node.Registry) {
 	r.Register(domain.NodeTypeConditional, NewConditionalHandler())
 	r.Register(domain.NodeTypeWait, NewWaitHandler())
 	r.Register(domain.NodeTypeLog, NewLogHandler())
+	r.Register(domain.NodeTypeApproval, NewApprovalHandler())
 }
 
 // NewRegistryWithBuiltin crea un registry con todos los handlers builtin
